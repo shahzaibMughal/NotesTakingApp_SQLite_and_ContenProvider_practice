@@ -8,6 +8,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.util.Log;
+import android.widget.Toast;
 
 import java.util.Arrays;
 
@@ -47,7 +49,7 @@ public class NotesContentProvider extends ContentProvider {
         {
             case NOTES:
                 cursor = db.query(NotesTakingAppDatabaseContract.NotesContract.TABLE_NAME,projection,selection,selectionArgs,null,null,sortOrder);
-                getContext().getContentResolver().notifyChange(uri,null);
+                cursor.setNotificationUri(getContext().getContentResolver(),uri);
                 return cursor;
 
             case NOTES_WITH_ID:
@@ -55,7 +57,7 @@ public class NotesContentProvider extends ContentProvider {
                 String mSelection = "_id=?";
                 String[] mSelectionArgs = new String[]{id};
                 cursor = db.query(NotesTakingAppDatabaseContract.NotesContract.TABLE_NAME,projection,mSelection,mSelectionArgs,null,null,sortOrder);
-                getContext().getContentResolver().notifyChange(uri,null);
+                cursor.setNotificationUri(getContext().getContentResolver(),uri);
                 return cursor;
 
                 default:
@@ -63,11 +65,7 @@ public class NotesContentProvider extends ContentProvider {
         }
     }
 
-    @Nullable
-    @Override
-    public String getType(@NonNull Uri uri) {
-        return null;
-    }
+
 
     @Nullable
     @Override
@@ -78,8 +76,8 @@ public class NotesContentProvider extends ContentProvider {
         {
             case NOTES:
                 db.insert(NotesTakingAppDatabaseContract.NotesContract.TABLE_NAME,null,contentValues);
-                getContext().getContentResolver().notifyChange(uri,null);
                 db.close();
+                getContext().getContentResolver().notifyChange(uri,null);
                 return uri;
 
                 default:
@@ -88,12 +86,29 @@ public class NotesContentProvider extends ContentProvider {
     }
 
     @Override
-    public int delete(@NonNull Uri uri, @Nullable String s, @Nullable String[] strings) {
-        return 0;
+    public int delete(@NonNull Uri uri, @Nullable String selection, @Nullable String[] selectionArgs) {
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        int match = uriMatcher.match(uri);
+        switch (match)
+        {
+            case NOTES:
+                int deletedCount = db.delete(NotesTakingAppDatabaseContract.NotesContract.TABLE_NAME,selection,selectionArgs);
+                getContext().getContentResolver().notifyChange(uri,null);
+                return deletedCount;
+
+                default:
+                    throw new UnsupportedOperationException("Unknown uri: "+uri);
+        }
     }
 
     @Override
     public int update(@NonNull Uri uri, @Nullable ContentValues contentValues, @Nullable String s, @Nullable String[] strings) {
         return 0;
+    }
+
+    @Nullable
+    @Override
+    public String getType(@NonNull Uri uri) {
+        return null;
     }
 }
