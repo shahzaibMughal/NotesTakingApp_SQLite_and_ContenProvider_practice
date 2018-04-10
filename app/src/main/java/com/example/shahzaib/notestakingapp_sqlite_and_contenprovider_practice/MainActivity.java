@@ -5,9 +5,6 @@ import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.os.AsyncTask;
-import android.provider.ContactsContract;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -15,7 +12,6 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
 import android.view.View;
-import android.widget.LinearLayout;
 import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity  implements LoaderManager.LoaderCallbacks<Cursor>,RecyclerViewAdapter.OnListItemClickListener{
@@ -45,7 +41,6 @@ public class MainActivity extends AppCompatActivity  implements LoaderManager.Lo
             @Override
             public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
                 String swipedItemID = (String) viewHolder.itemView.getTag();
-                Toast.makeText(MainActivity.this, "Swiped: "+swipedItemID, Toast.LENGTH_SHORT).show();
                 deleteNote(swipedItemID);
             }
         }).attachToRecyclerView(recyclerView);
@@ -64,7 +59,7 @@ public class MainActivity extends AppCompatActivity  implements LoaderManager.Lo
         startActivity(new Intent(this,AddNote.class));
     }
 
-    private void ViewNote(int _id)
+    public void viewNote(String _id)
     {
         Intent intent = new Intent(this, ViewNote.class);
         intent.putExtra("_id",_id);
@@ -73,7 +68,6 @@ public class MainActivity extends AppCompatActivity  implements LoaderManager.Lo
 
     private void deleteNote(String swipedItemID)
     {
-        Log.i("12345","swipedItemID: "+swipedItemID);
         String selection = NotesTakingAppDatabaseContract.NotesContract._ID+"=?";
         String[] selectionArgs = new String[]{swipedItemID};
 
@@ -88,6 +82,14 @@ public class MainActivity extends AppCompatActivity  implements LoaderManager.Lo
         }
     }
 
+    private void editNote(String _id)
+    {
+        Intent intent = new Intent(this,AddNote.class);
+        intent.putExtra("shouldEdit",true);
+        intent.putExtra("_id",_id);
+        startActivity(intent);
+    }
+
 
 
 
@@ -96,9 +98,15 @@ public class MainActivity extends AppCompatActivity  implements LoaderManager.Lo
 
     /******** On Recycler Item Listeneres*/
     @Override
-    public void onListItemClick(int position) {
-        ViewNote(position);
+    public void onListItemClick(String _ID) {
+        viewNote(_ID);
     }
+
+    @Override
+    public void onListItemLongClick(String _ID) {
+        editNote(_ID);
+    }
+
 
 
 
@@ -106,14 +114,12 @@ public class MainActivity extends AppCompatActivity  implements LoaderManager.Lo
     /************* Loader Callbacks*/
     @Override
     public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
-        Toast.makeText(this, "onCreateLoader is called", Toast.LENGTH_SHORT).show();
         return new CursorLoader(this,NotesTakingAppDatabaseContract.NotesContract.CONTENT_URI,
                         null,null,null,null);
     }
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
-        Toast.makeText(this, "onLoaderFinish is called", Toast.LENGTH_SHORT).show();
         if(cursor!=null && cursor.getCount()>0)
         {
             adapter.swapCursor(cursor);
@@ -127,7 +133,6 @@ public class MainActivity extends AppCompatActivity  implements LoaderManager.Lo
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
-        Toast.makeText(this, "onLoaderReset is called", Toast.LENGTH_SHORT).show();
         // when underlying database is updated, replace the old curse
         adapter.swapCursor(null);
         setup_recyclerView();

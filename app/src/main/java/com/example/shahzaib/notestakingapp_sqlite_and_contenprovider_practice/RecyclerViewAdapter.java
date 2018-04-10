@@ -29,7 +29,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
     }
 
     @Override
-    public void onBindViewHolder(RecyclerViewAdapter.ViewHolder holder, final int position) {
+    public void onBindViewHolder(final RecyclerViewAdapter.ViewHolder holder, final int position) {
         cursor.moveToPosition(position);
         holder.titleTV.setText(cursor.getString(cursor.getColumnIndex(NotesTakingAppDatabaseContract.NotesContract.COLUMN_NOTE_TITLE)));
         holder.itemView.setTag(cursor.getString(cursor.getColumnIndex(NotesTakingAppDatabaseContract.NotesContract._ID)));// we not want to start from 0
@@ -41,8 +41,15 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
             public void onClick(View view) {
                 if(listener!=null)
                 {
-                    listener.onListItemClick(position+1); // we not want to start from 0
+                    listener.onListItemClick((String) holder.itemView.getTag());
                 }
+            }
+        });
+        holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                listener.onListItemLongClick((String) holder.itemView.getTag());
+                return true;
             }
         });
     }
@@ -81,7 +88,8 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
 
     interface OnListItemClickListener
     {
-        void onListItemClick(int position);
+        void onListItemClick(String _ID);
+        void onListItemLongClick(String _ID);
     }
 
 }

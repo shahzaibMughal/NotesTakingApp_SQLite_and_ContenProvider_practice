@@ -18,31 +18,22 @@ public class ViewNote extends AppCompatActivity {
         noteTitle = findViewById(R.id.noteTitle);
         noteDescription = findViewById(R.id.noteDescription);
 
-        int id = getIntent().getIntExtra("_id",-1);
-        if(id!=-1)
-        {
+        String id = getIntent().getStringExtra("_id");
+
 
             Cursor cursor = getContentResolver().query(
-                    NotesTakingAppDatabaseContract.NotesContract.CONTENT_URI.buildUpon().appendPath(String.valueOf(id)).build(),
+                    NotesTakingAppDatabaseContract.NotesContract.CONTENT_URI.buildUpon().appendPath(id).build(),
                     null,
                     null,
                     null,
                     null);
 
             cursor.moveToFirst();
-
             String title = cursor.getString(cursor.getColumnIndex(NotesTakingAppDatabaseContract.NotesContract.COLUMN_NOTE_TITLE));
             String description = cursor.getString(cursor.getColumnIndex(NotesTakingAppDatabaseContract.NotesContract.COLUMN_NOTE_DESCRIPTION));
             cursor.close();
             noteTitle.setText(title);
             noteDescription.setText(description);
-        }
-        else
-        {
-            // this function will not be called
-            noteTitle.setText("null");
-            noteDescription.setText("null");
-            Toast.makeText(this, "No note is found!", Toast.LENGTH_SHORT).show();
-        }
+
     }
 }

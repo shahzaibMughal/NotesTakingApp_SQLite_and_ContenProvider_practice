@@ -103,7 +103,21 @@ public class NotesContentProvider extends ContentProvider {
 
     @Override
     public int update(@NonNull Uri uri, @Nullable ContentValues contentValues, @Nullable String s, @Nullable String[] strings) {
-        return 0;
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        int match = uriMatcher.match(uri);
+        switch (match)
+        {
+            case NOTES_WITH_ID:
+                String id = uri.getPathSegments().get(1); // this will extract the last path from the uri, in our case it is id
+                String mSelection = "_id=?";
+                String[] mSelectionArgs = new String[]{id};
+                int result = db.update(NotesTakingAppDatabaseContract.NotesContract.TABLE_NAME,contentValues,mSelection,mSelectionArgs);
+                getContext().getContentResolver().notifyChange(uri,null);
+                return result;
+
+            default:
+                throw new UnsupportedOperationException("Unknown uri: "+uri);
+        }
     }
 
     @Nullable
